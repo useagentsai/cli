@@ -40,4 +40,8 @@ program.command("context <package>").description("Fetch a tool's agent context")
   .option("-t, --transport <transport>", "filter examples by transport: api, cli, or mcp")
   .action((packageSlug: string, options: { language?: string; transport?: string }) => run((config) => contextCommand(packageSlug, options, config)));
 
-program.parse();
+if (process.argv.slice(2).length === 0) {
+  program.outputHelp();
+} else {
+  program.parse();
+}
