@@ -16,7 +16,7 @@ On macOS or Linux, install a checksum-verified binary with:
 curl -fsSL https://useagents.site/cli/install.sh | sh
 ```
 
-The binary is installed to `${XDG_BIN_HOME:-$HOME/.local/bin}`. Releases and `SHA256SUMS` are published on GitHub; set `USEAGENTS_VERSION` to pin a release.
+The binary is installed to `${XDG_BIN_HOME:-$HOME/.local/bin}`. Releases and `SHA256SUMS` are published on GitHub. The installer uses GitHub's latest-release download redirects, so it does not require the GitHub API. Set `USEAGENTS_VERSION` to pin a release.
 
 Output is human-readable in an interactive terminal and JSON when `--json` is set or stdout is piped. JSON success always uses:
 
