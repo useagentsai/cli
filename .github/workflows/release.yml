@@ -1,0 +1,53 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+jobs:
+  binaries:
+    strategy:
+      matrix:
+        include:
+          - target: bun-linux-x64
+            name: useagents-linux-x64
+          - target: bun-linux-arm64
+            name: useagents-linux-arm64
+          - target: bun-darwin-arm64
+            name: useagents-darwin-arm64
+          - target: bun-darwin-x64
+            name: useagents-darwin-x64
+          - target: bun-windows-x64
+            name: useagents-windows-x64.exe
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun build ./src/index.ts --compile --target=${{ matrix.target }} --outfile ${{ matrix.name }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ matrix.name }}
+  github-release:
+    needs: binaries
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    permissions: { contents: write }
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: dist }
+      - name: Flatten binaries and create checksums
+        run: |
+          find dist -type f -not -name SHA256SUMS -exec mv {} dist/ \;
+          find dist -mindepth 1 -type d -empty -delete
+          cd dist
+          sha256sum useagents-* > SHA256SUMS
+      - uses: softprops/action-gh-release@v2
+        with: { files: "dist/useagents-*\ndist/SHA256SUMS" }
+  npm:
+    if: ${{ secrets.NPM_TOKEN != '' }}
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: npm publish
+        env: { NODE_AUTH_TOKEN: "${{ secrets.NPM_TOKEN }}" }
