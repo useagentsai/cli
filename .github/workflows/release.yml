@@ -1,7 +1,9 @@
 name: Release
 on:
   push:
-    tags: ["v*"]
+    tags:
+      - 'v*'
+  workflow_dispatch:
 jobs:
   binaries:
     strategy:
@@ -33,7 +35,9 @@ jobs:
     permissions: { contents: write }
     steps:
       - uses: actions/download-artifact@v4
-        with: { path: dist }
+        with:
+          path: dist
+          merge-multiple: true
       - name: Flatten binaries and create checksums
         run: |
           find dist -type f -not -name SHA256SUMS -exec mv {} dist/ \;
@@ -49,5 +53,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - run: npm publish
-        env: { NODE_AUTH_TOKEN: "${{ secrets.NPM_TOKEN }}" }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
