@@ -1,9 +1,9 @@
 {
   "name": "@useagents/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "UseAgents registry CLI",
   "type": "module",
-  "bin": { "useagents": "./src/index.ts" },
+  "bin": { "useagents": "src/index.ts" },
   "files": ["src", "README.md", ".env.example"],
   "scripts": {
     "test": "bun test",
