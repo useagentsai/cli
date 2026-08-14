@@ -46,6 +46,12 @@ export function printSearchHuman(data: SearchData, total: number, color: boolean
       `     Last updated: ${item.updatedAt || "—"}`,
     ];
     if (item.categories.length) lines.push(`     Categories: ${item.categories.join(", ")}`);
+    const sourceLines = [
+      item.sources?.website ? `       Website: ${item.sources.website}` : null,
+      item.sources?.repoUrl ? `       Repository: ${item.sources.repoUrl}` : null,
+      item.sources?.docsUrl ? `       Docs: ${item.sources.docsUrl}` : null,
+    ].filter((line): line is string => line !== null);
+    if (sourceLines.length) lines.push("     Sources:", ...sourceLines);
     return lines.join("\n");
   });
   const footer = data.results.length !== total
