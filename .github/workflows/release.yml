@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - run: bun build ./src/index.ts --compile --target=${{ matrix.target }} --outfile ${{ matrix.name }}
+      - run: bun build --compile --minify --sourcemap --bytecode ./src/index.ts --target=${{ matrix.target }} --outfile ${{ matrix.name }}
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
