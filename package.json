@@ -1,6 +1,6 @@
 {
   "name": "@useagents/cli",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "UseAgents registry CLI",
   "type": "module",
   "bin": { "useagents": "src/index.ts" },
