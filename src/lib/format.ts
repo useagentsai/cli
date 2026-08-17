@@ -14,15 +14,29 @@ export function truncate(text: string, max = 70): string {
 }
 
 export function mapSearchResult(item: SearchResultItem): SearchData["results"][number] {
+  const capabilities = item.capabilities || item.categories || [];
+  const languages = item.languages || [];
+  const interfaces = item.interfaces || item.transports || [];
+  const updated = item.updated || item.updatedAt || "—";
+
+  const website = item.verify?.website || item.sources?.website;
+  const repository = item.verify?.repository || item.sources?.repoUrl;
+  const docs = item.verify?.docs || item.sources?.docsUrl;
+
+  const verify: { website?: string; repository?: string; docs?: string } = {};
+  if (website) verify.website = website;
+  if (repository) verify.repository = repository;
+  if (docs) verify.docs = docs;
+
   return {
     name: item.name,
     slug: item.slug,
-    description: item.description || item.shortDescription,
-    languages: item.languages || [],
-    categories: item.categories || [],
-    updatedAt: item.updatedAt ?? null,
-    transports: item.transports || [],
-    sources: item.sources || {},
+    description: item.description || item.shortDescription || "—",
+    capabilities,
+    languages,
+    interfaces,
+    updated,
+    verify,
   };
 }
 
@@ -38,26 +52,40 @@ export function printSearchHuman(data: SearchData, total: number, color: boolean
   if (data.results.length === 0) return "\n  No tools found.\n";
   const blocks = data.results.map((item, index) => {
     const lines = [
-      `  ${index + 1}. ${cyan(item.name || item.slug, color)}`,
-      `     ${dim(`Slug: ${item.slug}`, color)}`,
-      `     Description: ${item.description || "—"}`,
-      `     Languages: ${item.languages.length ? item.languages.join(", ") : "—"}`,
-      `     Transports: ${item.transports?.length ? item.transports.join(", ") : "—"}`,
-      `     Last updated: ${item.updatedAt || "—"}`,
+      `${index + 1}. ${cyan(item.name || item.slug, color)}`,
+      `   Slug: ${item.slug}`,
+      `   Description: ${item.description || "—"}`,
     ];
-    if (item.categories.length) lines.push(`     Categories: ${item.categories.join(", ")}`);
-    const sourceLines = [
-      item.sources?.website ? `       Website: ${item.sources.website}` : null,
-      item.sources?.repoUrl ? `       Repository: ${item.sources.repoUrl}` : null,
-      item.sources?.docsUrl ? `       Docs: ${item.sources.docsUrl}` : null,
-    ].filter((line): line is string => line !== null);
-    if (sourceLines.length) lines.push("     Sources:", ...sourceLines);
+
+    if (item.capabilities && item.capabilities.length > 0) {
+      lines.push("   Capabilities:");
+      for (const cap of item.capabilities) {
+        lines.push(`     - ${cap}`);
+      }
+    }
+
+    lines.push(
+      `   Languages: ${item.languages && item.languages.length ? item.languages.join(", ") : "—"}`,
+      `   Interfaces: ${item.interfaces && item.interfaces.length ? item.interfaces.join(", ") : "—"}`,
+      `   Updated: ${item.updated || "—"}`
+    );
+
+    const verifyLines: string[] = [];
+    if (item.verify?.website) verifyLines.push(`     Website: ${item.verify.website}`);
+    if (item.verify?.repository) verifyLines.push(`     Repository: ${item.verify.repository}`);
+    if (item.verify?.docs) verifyLines.push(`     Docs: ${item.verify.docs}`);
+
+    if (verifyLines.length > 0) {
+      lines.push("   Verify:", ...verifyLines);
+    }
+
     return lines.join("\n");
   });
+
   const footer = data.results.length !== total
-    ? `\n  ${dim(`Showing ${data.results.length} of ${total} results.`, color)}`
+    ? `\n\n  ${dim(`Showing ${data.results.length} of ${total} results.`, color)}`
     : "";
-  return `\n${blocks.join("\n\n")}${footer}\n`;
+  return `${blocks.join("\n\n")}${footer}\n`;
 }
 
 export function printContextHuman(context: ToolContext, color: boolean): string {
