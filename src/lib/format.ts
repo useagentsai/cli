@@ -1,4 +1,5 @@
-import type { SearchData, SearchResultItem, SuccessEnvelope, ToolContext } from "../types";
+import { encode } from "@toon-format/toon";
+import type { SearchData, SearchResultItem, SuccessEnvelope, ToolContext, ToolDocsSearch } from "../types";
 
 const cyan = (text: string, enabled: boolean) => enabled ? `\u001B[36m${text}\u001B[39m` : text;
 const bold = (text: string, enabled: boolean) => enabled ? `\u001B[1m${text}\u001B[22m` : text;
@@ -42,6 +43,17 @@ export function mapSearchResult(item: SearchResultItem): SearchData["results"][n
 
 export function printJsonSuccess<T>(envelope: SuccessEnvelope<T>): string {
   return `${JSON.stringify(envelope)}\n`;
+}
+
+export function printToonSuccess<T>(envelope: SuccessEnvelope<T>): string {
+  return `${encode(envelope)}\n`;
+}
+
+export function printStructuredSuccess<T>(
+  envelope: SuccessEnvelope<T>,
+  format: "json" | "toon",
+): string {
+  return format === "toon" ? printToonSuccess(envelope) : printJsonSuccess(envelope);
 }
 
 export function printJsonError(error: { message: string; code: string }): string {
@@ -118,6 +130,34 @@ export function printContextHuman(context: ToolContext, color: boolean): string 
       lines.push(`    ${truncateCode(example.code)}`);
     }
   }
+  return `${lines.join("\n")}\n`;
+}
+
+export function printDocsHuman(data: ToolDocsSearch, color: boolean): string {
+  const lines = [
+    "",
+    `  ${cyan(data.slug, color)}`,
+    `  Docs: ${data.docsUrl}`,
+    `  Query: ${data.query}`,
+  ];
+
+  if (data.results.length === 0) {
+    lines.push("", "  No documentation results found.");
+    return `${lines.join("\n")}\n`;
+  }
+
+  lines.push("", `  ${bold("Results", color)}`, "  ───────");
+  for (const [index, result] of data.results.entries()) {
+    lines.push(`  ${index + 1}. ${cyan(result.title || result.url, color)}`);
+    lines.push(`     ${result.url}`);
+    if (result.description) {
+      lines.push(`     ${truncate(result.description, 120)}`);
+    }
+    if (result.content) {
+      lines.push(`     ${truncate(result.content.replace(/\s+/g, " "), 160)}`);
+    }
+  }
+
   return `${lines.join("\n")}\n`;
 }
 

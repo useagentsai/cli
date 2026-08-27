@@ -1,7 +1,10 @@
 export const DEFAULT_API_URL = "https://api.useagents.site";
 
+export type OutputFormat = "human" | "json" | "toon";
+
 export interface GlobalOptions {
   json?: boolean;
+  format?: string;
   color?: boolean;
   apiUrl?: string;
   apiKey?: string;
@@ -10,12 +13,24 @@ export interface GlobalOptions {
 export interface RuntimeConfig {
   apiUrl: string;
   apiKey?: string;
-  json: boolean;
+  format: OutputFormat;
   color: boolean;
 }
 
-export function shouldUseJson({ jsonFlag, stdoutIsTTY }: { jsonFlag?: boolean; stdoutIsTTY: boolean }): boolean {
-  return Boolean(jsonFlag) || !stdoutIsTTY;
+export function resolveOutputFormat({
+  formatFlag,
+  jsonFlag,
+  stdoutIsTTY,
+}: {
+  formatFlag?: string;
+  jsonFlag?: boolean;
+  stdoutIsTTY: boolean;
+}): OutputFormat {
+  if (formatFlag === "human" || formatFlag === "json" || formatFlag === "toon") {
+    return formatFlag;
+  }
+  if (jsonFlag) return "json";
+  return stdoutIsTTY ? "human" : "json";
 }
 
 export function shouldUseColor({
@@ -34,7 +49,11 @@ export function makeConfig(options: GlobalOptions, stdoutIsTTY: boolean): Runtim
   return {
     apiUrl: (options.apiUrl || process.env.USEAGENTS_API_URL || DEFAULT_API_URL).replace(/\/+$/, ""),
     apiKey: options.apiKey || process.env.USEAGENTS_API_KEY,
-    json: shouldUseJson({ jsonFlag: options.json, stdoutIsTTY }),
+    format: resolveOutputFormat({
+      formatFlag: options.format,
+      jsonFlag: options.json,
+      stdoutIsTTY,
+    }),
     color: shouldUseColor({ noColorFlag: options.color === false, noColor: process.env.NO_COLOR, stdoutIsTTY }),
   };
 }

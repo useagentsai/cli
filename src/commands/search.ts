@@ -1,7 +1,7 @@
 import type { RuntimeConfig } from "../config";
 import { ApiClient } from "../lib/api-client";
 import { CliError } from "../lib/errors";
-import { mapSearchResult, printJsonSuccess, printSearchHuman } from "../lib/format";
+import { mapSearchResult, printSearchHuman, printStructuredSuccess } from "../lib/format";
 import { startSpinner } from "../lib/spinner";
 
 export async function searchCommand(query: string, options: { limit?: string; language?: string; transport?: string; category?: string }, config: RuntimeConfig): Promise<string> {
@@ -12,7 +12,10 @@ export async function searchCommand(query: string, options: { limit?: string; la
     const allResults = await new ApiClient(config.apiUrl, config.apiKey).searchTools(query, options);
     const results = allResults.slice(0, parsedLimit).map(mapSearchResult);
     const envelope = { command: "search" as const, query, data: { results }, meta: { count: results.length, total: allResults.length } };
-    return config.json ? printJsonSuccess(envelope) : printSearchHuman(envelope.data, allResults.length, config.color);
+    if (config.format === "human") {
+      return printSearchHuman(envelope.data, allResults.length, config.color);
+    }
+    return printStructuredSuccess(envelope, config.format);
   } finally {
     spinner.stop();
   }

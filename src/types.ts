@@ -34,12 +34,26 @@ export interface ToolContext {
   examples: { title: string; description?: string; language: "ts" | "bash"; code: string; transport?: "api" | "cli" | "mcp"; frameworks?: string[]; docsUrl?: string }[];
 }
 
+export interface ToolDocsResultItem {
+  url: string;
+  title?: string;
+  description?: string;
+  content?: string;
+}
+
+export interface ToolDocsSearch {
+  slug: string;
+  docsUrl: string;
+  query: string;
+  results: ToolDocsResultItem[];
+}
+
 export interface SearchData {
   results: PublicSearchResultItem[];
 }
 
 export interface SuccessEnvelope<T> {
-  command: "search" | "context";
+  command: "search" | "context" | "docs";
   query: string;
   data: T;
   meta: { count: number; total: number | null };

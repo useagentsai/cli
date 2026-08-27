@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
 import { contextCommand } from "./commands/context";
+import { docsCommand } from "./commands/docs";
 import { searchCommand } from "./commands/search";
 import { makeConfig } from "./config";
 import { errorDetails } from "./lib/errors";
@@ -10,11 +11,12 @@ const program = new Command();
 program
   .name("useagents")
   .description("Search the UseAgents registry and fetch tool context.")
-  .option("--json", "write a JSON response")
+  .option("--json", "write a JSON response (alias for --format json)")
+  .option("--format <format>", "output format: human, json, or toon (default: human in a TTY, json when piped)")
   .option("--no-color", "disable terminal color")
   .option("--api-url <url>", "UseAgents API URL")
   .option("--api-key <key>", "UseAgents API key")
-  .addHelpText("after", `\nExamples:\n  $ useagents search \"email api\" -l python -t api\n  $ useagents context resend -l typescript-javascript -t api\n`);
+  .addHelpText("after", `\nExamples:\n  $ useagents search \"email api\" -l python -t api\n  $ useagents context resend -l typescript-javascript -t api\n  $ useagents docs resend \"how do I send attachments\"\n  $ useagents docs resend \"attachments\" --format toon\n`);
 
 function run(action: (config: ReturnType<typeof makeConfig>) => Promise<string>): void {
   void (async () => {
@@ -23,7 +25,7 @@ function run(action: (config: ReturnType<typeof makeConfig>) => Promise<string>)
       process.stdout.write(await action(config));
     } catch (error) {
       const details = errorDetails(error);
-      if (config.json) process.stdout.write(`${printJsonError(details)}\n`);
+      if (config.format !== "human") process.stdout.write(`${printJsonError(details)}\n`);
       else process.stderr.write(printHumanError(details.message, config.color));
       process.exitCode = details.exitCode;
     }
@@ -39,6 +41,8 @@ program.command("context <package>").description("Fetch a tool's agent context")
   .option("-l, --language <lang>", "filter examples by language")
   .option("-t, --transport <transport>", "filter examples by transport: api, cli, or mcp")
   .action((packageSlug: string, options: { language?: string; transport?: string }) => run((config) => contextCommand(packageSlug, options, config)));
+program.command("docs <package> <query...>").description("Search a tool's official documentation")
+  .action((packageSlug: string, queryParts: string[]) => run((config) => docsCommand(packageSlug, queryParts, config)));
 
 if (process.argv.slice(2).length === 0) {
   program.outputHelp();

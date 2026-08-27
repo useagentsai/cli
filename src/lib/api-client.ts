@@ -1,7 +1,8 @@
 import { ApiError } from "./errors";
-import type { SearchResultItem, ToolContext } from "../types";
+import type { SearchResultItem, ToolContext, ToolDocsSearch } from "../types";
 
 const TIMEOUT_MS = 15_000;
+const DOCS_TIMEOUT_MS = 30_000;
 
 export class ApiClient {
   constructor(
@@ -25,9 +26,17 @@ export class ApiClient {
     return this.request<ToolContext>(`/tools/context/${encodeURIComponent(slug)}${suffix}`);
   }
 
-  private async request<T>(path: string): Promise<T> {
+  async searchToolDocs(slug: string, query: string): Promise<ToolDocsSearch> {
+    const params = new URLSearchParams({ q: query });
+    return this.request<ToolDocsSearch>(
+      `/tools/docs/${encodeURIComponent(slug)}?${params}`,
+      DOCS_TIMEOUT_MS,
+    );
+  }
+
+  private async request<T>(path: string, timeoutMs = TIMEOUT_MS): Promise<T> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await this.fetcher(`${this.apiUrl}${path}`, {
         headers: {
