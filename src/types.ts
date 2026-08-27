@@ -1,5 +1,3 @@
-import type { SearchResultItem as PublicSearchResultItem } from "@useagents/utils/schemas/search-result";
-
 export interface SearchResultItem {
   id?: string;
   name: string;
@@ -15,6 +13,17 @@ export interface SearchResultItem {
   interfaces?: string[];
   sources?: { website?: string; docsUrl?: string; repoUrl?: string };
   verify?: { website?: string; repository?: string; docs?: string };
+}
+
+export interface PublicSearchResultItem {
+  name: string;
+  slug: string;
+  description: string;
+  capabilities: string[];
+  languages: string[];
+  interfaces: string[];
+  updated: string;
+  verify: { website?: string; repository?: string; docs?: string };
 }
 
 export interface InstallStep {
