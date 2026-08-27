@@ -40,9 +40,19 @@ Commands and flags:
 - `search <query> [--limit <n>] [--language/-l <lang>] [--transport/-t <transport>] [--category/-c <category>]`
 - `context <package> [--language/-l <lang>] [--transport/-t <transport>]`
 - `docs <package> <query...>`
+- `upgrade [--release <tag>]`
 - global `--format <human|json|toon>`, `--json`, `--no-color`, `--api-url <url>`, `--api-key <key>`
 
 Set `USEAGENTS_API_URL` or `USEAGENTS_API_KEY` in the environment; command-line options override them. `NO_COLOR` disables color.
+
+Upgrade the standalone binary (same as re-running the install script):
+
+```bash
+useagents upgrade
+useagents upgrade --release v0.1.8
+```
+
+`upgrade` runs `curl -fsSL https://useagents.site/cli/install.sh | sh`. Pass `--release` or set `USEAGENTS_VERSION` to pin a tag. On Windows, or if you installed via npm, use `npm install -g @useagents/cli@latest` instead.
 
 Build a standalone binary:
 
@@ -53,4 +63,4 @@ bun run build:bin
 
 The registry API is public beta and may evolve. Search JSON includes languages, categories, transports, and structured sources. Context JSON preserves the complete useful API payload, including named Quickstart examples, install instructions, transport, verified integrations, entry docs links, and I/O metadata. Docs JSON returns ranked passages from the tool's official documentation host.
 
-Run `useagents --help`, `useagents search --help`, `useagents context --help`, or `useagents docs --help` for the complete command reference.
+Run `useagents --help`, `useagents search --help`, `useagents context --help`, `useagents docs --help`, or `useagents upgrade --help` for the complete command reference.

@@ -53,7 +53,7 @@ export interface SearchData {
 }
 
 export interface SuccessEnvelope<T> {
-  command: "search" | "context" | "docs";
+  command: "search" | "context" | "docs" | "upgrade";
   query: string;
   data: T;
   meta: { count: number; total: number | null };
