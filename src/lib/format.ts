@@ -151,10 +151,12 @@ export function printDocsHuman(data: ToolDocsSearch, color: boolean): string {
     lines.push(`  ${index + 1}. ${cyan(result.title || result.url, color)}`);
     lines.push(`     ${result.url}`);
     if (result.description) {
-      lines.push(`     ${truncate(result.description, 120)}`);
+      lines.push(`     ${result.description.trim()}`);
     }
     if (result.content) {
-      lines.push(`     ${truncate(result.content.replace(/\s+/g, " "), 160)}`);
+      for (const line of result.content.trimEnd().split("\n")) {
+        lines.push(`     ${line}`);
+      }
     }
   }
 

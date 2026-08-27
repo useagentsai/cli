@@ -29,4 +29,26 @@ describe("docs formatting", () => {
     expect(printDocsHuman(docs, false)).toContain("Attachments");
     expect(printDocsHuman(docs, false)).toContain("https://resend.com/docs/send-with-attachments");
   });
+
+  test("human output does not truncate docs content", () => {
+    const longContent = "A".repeat(300);
+    const longDescription = "B".repeat(200);
+    const output = printDocsHuman(
+      {
+        ...docs,
+        results: [
+          {
+            ...docs.results[0],
+            description: longDescription,
+            content: `# Heading\n${longContent}`,
+          },
+        ],
+      },
+      false,
+    );
+    expect(output).toContain(longDescription);
+    expect(output).toContain(longContent);
+    expect(output).not.toContain("…");
+    expect(output).toContain("     # Heading");
+  });
 });

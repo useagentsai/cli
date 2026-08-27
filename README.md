@@ -49,7 +49,7 @@ Upgrade the standalone binary (same as re-running the install script):
 
 ```bash
 useagents upgrade
-useagents upgrade --release v0.1.8
+useagents upgrade --release v0.1.9
 ```
 
 `upgrade` runs `curl -fsSL https://useagents.site/cli/install.sh | sh`. Pass `--release` or set `USEAGENTS_VERSION` to pin a tag. On Windows, or if you installed via npm, use `npm install -g @useagents/cli@latest` instead.
