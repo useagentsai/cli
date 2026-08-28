@@ -125,7 +125,9 @@ export function printContextHuman(context: ToolContext, color: boolean): string 
       lines.push(`  ${cyan(example.title, color)}`);
       if (example.transport) lines.push(`  Transport: ${example.transport}`);
       if (example.description) lines.push(`  ${example.description}`);
-      if (example.docsUrl) lines.push(`  Docs: ${example.docsUrl}`);
+      if (example.docsUrl && !example.description?.includes(example.docsUrl)) {
+        lines.push(`  Docs: ${example.docsUrl}`);
+      }
       if (example.frameworks?.length) lines.push(`  Verified integrations: ${example.frameworks.join(", ")}`);
       lines.push(`    ${truncateCode(example.code)}`);
     }
