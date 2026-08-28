@@ -1,0 +1,16 @@
+---
+description: Bump package.json version whenever CLI source, tests, or behavior changes
+globs: package.json, src/**, test/**
+alwaysApply: false
+---
+
+# Version bump on every change
+
+Whenever you change CLI behavior, commands, output formatting, dependencies, or tests in this repo, bump the version in `package.json` in the same commit/PR.
+
+- Bump the **patch** segment by default (e.g. `0.1.9` → `0.1.10`).
+- Bump **minor** for new commands or notable features; bump **major** only for breaking CLI/API changes.
+- Do **not** edit `src/version.ts` manually — it reads the version from `package.json`.
+- Docs-only or CI-only changes that do not affect the published package may skip a bump; everything else should bump.
+
+The release workflow tags and publishes from `package.json` on merge to `main`, so a missing bump blocks the next release.
