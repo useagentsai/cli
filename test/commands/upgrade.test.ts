@@ -26,7 +26,7 @@ describe("upgradeCommand", () => {
     const calls: Array<{ release: string; streamOutput: boolean }> = [];
     const output = await upgradeCommand(
       { release: "v0.1.8" },
-      { apiUrl: "https://api.useagents.site", format: "json", color: false },
+      { apiUrl: "https://api.useagents.site", atlasUrl: "https://atlas.useagents.site", format: "json", color: false },
       {
         version: "0.1.7",
         execPath: "/home/me/.local/bin/useagents",
@@ -56,7 +56,7 @@ describe("upgradeCommand", () => {
     await expect(
       upgradeCommand(
         {},
-        { apiUrl: "https://api.useagents.site", format: "human", color: false },
+        { apiUrl: "https://api.useagents.site", atlasUrl: "https://atlas.useagents.site", format: "human", color: false },
         {
           platform: "win32",
           runInstaller: async () => ({ exitCode: 0, stdout: "", stderr: "" }),
@@ -69,7 +69,7 @@ describe("upgradeCommand", () => {
     await expect(
       upgradeCommand(
         {},
-        { apiUrl: "https://api.useagents.site", format: "json", color: false },
+        { apiUrl: "https://api.useagents.site", atlasUrl: "https://atlas.useagents.site", format: "json", color: false },
         {
           platform: "darwin",
           runInstaller: async () => ({ exitCode: 1, stdout: "", stderr: "✖ Download failed" }),

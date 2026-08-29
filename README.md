@@ -1,12 +1,14 @@
 # UseAgents CLI
 
-Search the public UseAgents registry, fetch rich tool context, and search a tool's official docs.
+Search the public UseAgents registry, authenticate with WorkOS, and chat with Atlas.
 
 ```bash
 bun install
 bun run src/index.ts search "mcp server frameworks"
 bun run src/index.ts context drizzle-orm --language ts
 bun run src/index.ts docs resend "how do I send attachments"
+bun run src/index.ts auth login
+bun run src/index.ts atlas
 ```
 
 Install from npm with `npm install -g @useagents/cli`; the executable is `useagents`.
@@ -18,6 +20,18 @@ curl -fsSL https://useagents.site/cli/install.sh | sh
 ```
 
 The installer prints the detected platform, install directory, download URL, checksum verification, and whether it is installing or updating. The binary is installed to `${XDG_BIN_HOME:-$HOME/.local/bin}`. Releases and `SHA256SUMS` are published on GitHub. The installer uses GitHub's latest-release download redirects, so it does not require the GitHub API. Set `USEAGENTS_VERSION` to pin a release.
+
+## Auth and Atlas
+
+```bash
+useagents auth login    # WorkOS CLI Auth (device code)
+useagents auth status
+useagents auth logout
+useagents atlas         # Branded USEAGENTS ATLAS chat (requires login)
+useagents atlas -m "list my tools"
+```
+
+Credentials are stored in `${XDG_CONFIG_HOME:-$HOME/.config}/useagents/credentials.json`. Atlas requests send `Authorization: Bearer <access_token>` and `X-UseAgents-Org: <org_id>`. Override the Atlas host with `--atlas-url` or `USEAGENTS_ATLAS_URL`.
 
 ## Output formats
 
@@ -37,13 +51,15 @@ Toon uses the same envelope shape, encoded as Toon text. Errors use `{"error":{"
 
 Commands and flags:
 
+- `auth login|logout|status`
+- `atlas [--url <url>] [-m/--message <message>]`
 - `search <query> [--limit <n>] [--language/-l <lang>] [--transport/-t <transport>] [--category/-c <category>]`
 - `context <package> [--language/-l <lang>] [--transport/-t <transport>]`
 - `docs <package> <query...>`
 - `upgrade [--release <tag>]`
-- global `--format <human|json|toon>`, `--json`, `--no-color`, `--api-url <url>`, `--api-key <key>`
+- global `--format <human|json|toon>`, `--json`, `--no-color`, `--api-url <url>`, `--api-key <key>`, `--atlas-url <url>`
 
-Set `USEAGENTS_API_URL` or `USEAGENTS_API_KEY` in the environment; command-line options override them. `NO_COLOR` disables color.
+Set `USEAGENTS_API_URL`, `USEAGENTS_API_KEY`, `USEAGENTS_ATLAS_URL`, or `USEAGENTS_WORKOS_CLIENT_ID` in the environment; command-line options override them. `NO_COLOR` disables color.
 
 Upgrade the standalone binary (same as re-running the install script):
 

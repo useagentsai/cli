@@ -1,4 +1,7 @@
+import { loadCredentials } from "./lib/credentials";
+
 export const DEFAULT_API_URL = "https://api.useagents.site";
+export const DEFAULT_ATLAS_URL = "https://atlas.useagents.site";
 
 export type OutputFormat = "human" | "json" | "toon";
 
@@ -8,11 +11,15 @@ export interface GlobalOptions {
   color?: boolean;
   apiUrl?: string;
   apiKey?: string;
+  atlasUrl?: string;
 }
 
 export interface RuntimeConfig {
   apiUrl: string;
   apiKey?: string;
+  accessToken?: string;
+  organizationId?: string;
+  atlasUrl: string;
   format: OutputFormat;
   color: boolean;
 }
@@ -45,10 +52,14 @@ export function shouldUseColor({
   return !noColorFlag && !noColor && stdoutIsTTY;
 }
 
-export function makeConfig(options: GlobalOptions, stdoutIsTTY: boolean): RuntimeConfig {
+export async function makeConfig(options: GlobalOptions, stdoutIsTTY: boolean): Promise<RuntimeConfig> {
+  const credentials = await loadCredentials();
   return {
     apiUrl: (options.apiUrl || process.env.USEAGENTS_API_URL || DEFAULT_API_URL).replace(/\/+$/, ""),
     apiKey: options.apiKey || process.env.USEAGENTS_API_KEY,
+    accessToken: credentials?.accessToken,
+    organizationId: credentials?.organizationId,
+    atlasUrl: (options.atlasUrl || process.env.USEAGENTS_ATLAS_URL || DEFAULT_ATLAS_URL).replace(/\/+$/, ""),
     format: resolveOutputFormat({
       formatFlag: options.format,
       jsonFlag: options.json,
