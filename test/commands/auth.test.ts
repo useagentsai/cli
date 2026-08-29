@@ -8,8 +8,9 @@ import {
   loadCredentials,
   saveCredentials,
 } from "../../src/lib/credentials";
-import { DEFAULT_ATLAS_URL, resolveAtlasUrl } from "../../src/commands/atlas";
+import { ATLAS_DISPLAY_NAME, DEFAULT_ATLAS_URL, resolveAtlasUrl } from "../../src/commands/atlas";
 import { DEFAULT_WORKOS_CLIENT_ID } from "../../src/lib/workos-auth";
+import { applyAtlasTuiBranding, eveTuiModuleUrl } from "../../src/atlas-tui/branding/apply-branding";
 
 describe("credentials store", () => {
   test("saves and loads credentials under XDG_CONFIG_HOME", async () => {
@@ -47,10 +48,29 @@ describe("atlas url helper", () => {
     expect(resolveAtlasUrl()).toBe("https://atlas.example");
     delete process.env.USEAGENTS_ATLAS_URL;
   });
+
+  test("uses USEAGENTS ATLAS display name", () => {
+    expect(ATLAS_DISPLAY_NAME).toBe("USEAGENTS ATLAS");
+  });
 });
 
 describe("workos defaults", () => {
   test("exposes a public client id default", () => {
     expect(DEFAULT_WORKOS_CLIENT_ID.startsWith("client_")).toBe(true);
+  });
+});
+
+describe("eve tui branding", () => {
+  test("patches eve agent-header and status-line modules", async () => {
+    await applyAtlasTuiBranding();
+    const tuiPath = eveTuiModuleUrl();
+    expect(tuiPath.endsWith("tui.js")).toBe(true);
+
+    const header = await readFile(tuiPath.replace(/tui\.js$/, "agent-header.js"), "utf8");
+    const status = await readFile(tuiPath.replace(/tui\.js$/, "status-line.js"), "utf8");
+    expect(header).toContain("useagents-atlas-branding");
+    expect(header).toContain("USEAGENTS ATLAS");
+    expect(status).toContain("useagents-atlas-branding");
+    expect(status).toContain("return undefined");
   });
 });

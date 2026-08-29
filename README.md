@@ -27,11 +27,11 @@ The installer prints the detected platform, install directory, download URL, che
 useagents auth login    # WorkOS CLI Auth (device code)
 useagents auth status
 useagents auth logout
-useagents atlas         # Branded USEAGENTS ATLAS chat (requires login)
+useagents atlas         # Eve remote TUI, branded as USEAGENTS ATLAS (requires login)
 useagents atlas -m "list my tools"
 ```
 
-Credentials are stored in `${XDG_CONFIG_HOME:-$HOME/.config}/useagents/credentials.json`. Atlas requests send `Authorization: Bearer <access_token>` and `X-UseAgents-Org: <org_id>`. Override the Atlas host with `--atlas-url` or `USEAGENTS_ATLAS_URL`.
+`useagents atlas` launches **Eve's real development TUI** (remote mode) against the Atlas host. Branding patches hide Eve's version/targeting/production/model chrome and show only **USEAGENTS ATLAS**. Credentials are stored in `${XDG_CONFIG_HOME:-$HOME/.config}/useagents/credentials.json`. Requests send `Authorization: Bearer <access_token>` and `X-UseAgents-Org: <org_id>`. Override the Atlas host with `--atlas-url` / `--url` or `USEAGENTS_ATLAS_URL`.
 
 ## Output formats
 
