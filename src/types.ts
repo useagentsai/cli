@@ -62,8 +62,8 @@ export interface SearchData {
 }
 
 export interface SuccessEnvelope<T> {
-  command: "search" | "context" | "docs" | "upgrade";
-  query: string;
+  command: "search" | "context" | "docs" | "upgrade" | "auth login" | "auth logout" | "auth status" | "atlas";
+  query?: string;
   data: T;
-  meta: { count: number; total: number | null };
+  meta?: { count: number; total: number | null };
 }
