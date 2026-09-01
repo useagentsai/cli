@@ -1,12 +1,13 @@
 # UseAgents CLI
 
-Search the public UseAgents registry, fetch rich tool context, and search a tool's official docs.
+Search the public UseAgents registry, fetch rich tool context, search a tool's official docs, and run snippets in a sandbox.
 
 ```bash
 bun install
 bun run src/index.ts search "mcp server frameworks"
 bun run src/index.ts context drizzle-orm --language ts
 bun run src/index.ts docs resend "how do I send attachments"
+bun run src/index.ts test --runtime node --language typescript --package resend --file src/index.ts --slug resend
 ```
 
 Install from npm with `npm install -g @useagents/cli`; the executable is `useagents`.
@@ -40,10 +41,35 @@ Commands and flags:
 - `search <query> [--limit <n>] [--language/-l <lang>] [--transport/-t <transport>] [--category/-c <category>]`
 - `context <package> [--language/-l <lang>] [--transport/-t <transport>]`
 - `docs <package> <query...>`
+- `test --runtime/-r <runtime> --language/-l <lang> [--file/-f <path>] [--package/-p <name>] [--env/-e NAME=value] [--slug <slug>] [--entry <path>] [--session-id <id>] [--timeout-ms <ms>]`
 - `upgrade [--release <tag>]`
 - global `--format <human|json|toon>`, `--json`, `--no-color`, `--api-url <url>`, `--api-key <key>`
 
 Set `USEAGENTS_API_URL` or `USEAGENTS_API_KEY` in the environment; command-line options override them. `NO_COLOR` disables color.
+
+## Test a snippet
+
+`test` POSTs to `/tools/test`. `--file` is relative to the current directory and may be repeated, as may `--package` and `--env NAME=value`. JavaScript and TypeScript (`--runtime node`) use the Bun runtime to add packages and run files. The sandbox allows outbound network so live vendor API calls can run; names that look like keys (`*_API_KEY`, `*_TOKEN`, `*_SECRET`) are sent as secrets.
+
+The first result includes a `sessionId`. Pass it back with `--session-id` to reuse the same box so packages and files stay installed. The box is paused between runs and has no hard TTL. When omitting `--file` on a follow-up, `--entry` is required.
+
+```bash
+useagents test \
+  --runtime node \
+  --language typescript \
+  --package resend \
+  --file src/index.ts \
+  --slug resend \
+  --env RESEND_API_KEY=re_test
+
+useagents test \
+  --runtime node \
+  --language typescript \
+  --session-id tt-node-xxxxxxxxxxxx \
+  --entry src/index.ts
+```
+
+The command exits `1` when the sandbox result has `ok: false`.
 
 Upgrade the standalone binary (same as re-running the install script):
 
@@ -61,6 +87,6 @@ bun run build:bin
 ./dist/useagents search drizzle --limit 2
 ```
 
-The registry API is public beta and may evolve. Search JSON includes languages, categories, transports, and structured sources. Context JSON preserves the complete useful API payload, including named Quickstart examples, install instructions, transport, verified integrations, entry docs links, and I/O metadata. Docs JSON returns ranked passages from the tool's official documentation host.
+The registry API is public beta and may evolve. Search JSON includes languages, categories, transports, and structured sources. Context JSON preserves the complete useful API payload, including named Quickstart examples, install instructions, transport, verified integrations, entry docs links, and I/O metadata. Docs JSON returns ranked passages from the tool's official documentation host. Test JSON includes sandbox status, stdout/stderr, phases, and session fields for reuse.
 
-Run `useagents --help`, `useagents search --help`, `useagents context --help`, `useagents docs --help`, or `useagents upgrade --help` for the complete command reference.
+Run `useagents --help`, `useagents search --help`, `useagents context --help`, `useagents docs --help`, `useagents test --help`, or `useagents upgrade --help` for the complete command reference.

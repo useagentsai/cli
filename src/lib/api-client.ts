@@ -1,8 +1,9 @@
 import { ApiError } from "./errors";
-import type { SearchResultItem, ToolContext, ToolDocsSearch } from "../types";
+import type { SearchResultItem, TestToolInput, TestToolResult, ToolContext, ToolDocsSearch } from "../types";
 
 const TIMEOUT_MS = 15_000;
 const DOCS_TIMEOUT_MS = 30_000;
+export const TEST_HTTP_TIMEOUT_BUFFER_MS = 15_000;
 
 export class ApiClient {
   constructor(
@@ -34,16 +35,31 @@ export class ApiClient {
     );
   }
 
-  private async request<T>(path: string, timeoutMs = TIMEOUT_MS): Promise<T> {
+  async testTool(input: TestToolInput, httpTimeoutMs?: number): Promise<TestToolResult> {
+    const timeoutMs = httpTimeoutMs ?? (input.timeoutMs ?? 30_000) + TEST_HTTP_TIMEOUT_BUFFER_MS;
+    return this.request<TestToolResult>("/tools/test", timeoutMs, {
+      method: "POST",
+      body: input,
+    });
+  }
+
+  private async request<T>(
+    path: string,
+    timeoutMs = TIMEOUT_MS,
+    init: { method?: string; body?: unknown } = {},
+  ): Promise<T> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await this.fetcher(`${this.apiUrl}${path}`, {
+        method: init.method ?? "GET",
         headers: {
           Accept: "application/json",
           "User-Agent": "@useagents/cli",
+          ...(init.body !== undefined ? { "Content-Type": "application/json" } : {}),
           ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {}),
         },
+        body: init.body === undefined ? undefined : JSON.stringify(init.body),
         signal: controller.signal,
       });
       const body: unknown = await response.json().catch(() => undefined);

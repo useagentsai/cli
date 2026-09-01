@@ -1,5 +1,5 @@
 import { encode } from "@toon-format/toon";
-import type { SearchData, SearchResultItem, SuccessEnvelope, ToolContext, ToolDocsSearch } from "../types";
+import type { SearchData, SearchResultItem, SuccessEnvelope, TestToolPhase, TestToolResult, ToolContext, ToolDocsSearch } from "../types";
 
 const cyan = (text: string, enabled: boolean) => enabled ? `\u001B[36m${text}\u001B[39m` : text;
 const bold = (text: string, enabled: boolean) => enabled ? `\u001B[1m${text}\u001B[22m` : text;
@@ -162,6 +162,63 @@ export function printDocsHuman(data: ToolDocsSearch, color: boolean): string {
     }
   }
 
+  return `${lines.join("\n")}\n`;
+}
+
+const TEST_TOOL_PHASE_ORDER = ["provision", "install", "run"] as const;
+
+function formatTestPhase(name: string, phase: TestToolPhase | undefined): string | undefined {
+  if (!phase) return undefined;
+  const parts = [`    ${name}: ${phase.ok ? "ok" : "failed"}`, `${phase.durationMs}ms`];
+  if (typeof phase.exitCode === "number") parts.push(`exit ${phase.exitCode}`);
+  return parts.join(" ");
+}
+
+function formatTestStream(label: string, text: string, truncated: boolean): string[] {
+  if (!text.trim()) return [];
+  const lines = ["", `  ${label}`];
+  for (const line of text.trimEnd().split("\n")) {
+    lines.push(`    ${line}`);
+  }
+  if (truncated) lines.push("    [truncated]");
+  return lines;
+}
+
+export function printTestHuman(result: TestToolResult, color: boolean): string {
+  const statusLine = `Status: ${result.status || "unknown"}${result.ok ? " (ok)" : ""}`;
+  const lines = [
+    "",
+    `  ${result.ok ? cyan(statusLine, color) : red(statusLine, color)}`,
+  ];
+  if (result.slug) lines.push(`  Slug: ${result.slug}`);
+  if (result.runtime) lines.push(`  Runtime: ${result.runtime}`);
+  if (result.language) lines.push(`  Language: ${result.language}`);
+  if (typeof result.durationMs === "number") lines.push(`  Duration: ${result.durationMs}ms`);
+  if (typeof result.exitCode === "number") lines.push(`  Exit code: ${result.exitCode}`);
+  if (result.sessionId) {
+    lines.push(`  Session: ${result.sessionId}${result.sessionReused ? " (reused)" : ""}`);
+  }
+  if (result.sessionFiles?.length) {
+    lines.push(`  Files: ${result.sessionFiles.join(", ")}`);
+  }
+  if (result.error?.message) {
+    const code = result.error.code ? ` (${result.error.code})` : "";
+    lines.push("", `  ${red(`Error${code}: ${result.error.message}`, color)}`);
+  }
+
+  const phaseLines = TEST_TOOL_PHASE_ORDER
+    .map((name) => formatTestPhase(name, result.phases?.[name]))
+    .filter((line): line is string => Boolean(line));
+  if (phaseLines.length > 0) {
+    lines.push("", `  ${bold("Phases", color)}`, "  ──────", ...phaseLines);
+  }
+
+  const stdout = formatTestStream("stdout", result.stdout, result.stdoutTruncated);
+  const stderr = formatTestStream("stderr", result.stderr, result.stderrTruncated);
+  lines.push(...stdout, ...stderr);
+  if (stdout.length === 0 && stderr.length === 0 && !result.error?.message) {
+    lines.push("", "  No stdout or stderr.");
+  }
   return `${lines.join("\n")}\n`;
 }
 
