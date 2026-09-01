@@ -38,7 +38,7 @@ describe("docs formatting", () => {
         ...docs,
         results: [
           {
-            ...docs.results[0],
+            ...docs.results[0]!,
             description: longDescription,
             content: `# Heading\n${longContent}`,
           },

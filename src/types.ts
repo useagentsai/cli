@@ -61,8 +61,64 @@ export interface SearchData {
   results: PublicSearchResultItem[];
 }
 
+export const TEST_TOOL_RUNTIMES = ["node", "python", "golang", "ruby", "rust"] as const;
+export type TestToolRuntime = (typeof TEST_TOOL_RUNTIMES)[number];
+
+export interface TestToolEnvItem {
+  name: string;
+  value?: string;
+  secret?: string;
+}
+
+export interface TestToolFile {
+  path: string;
+  code: string;
+}
+
+export interface TestToolInput {
+  slug?: string;
+  language: string;
+  runtime: TestToolRuntime;
+  packages?: string[];
+  files: TestToolFile[];
+  entry?: string;
+  sessionId?: string;
+  env?: TestToolEnvItem[];
+  timeoutMs?: number;
+}
+
+export interface TestToolPhase {
+  ok: boolean;
+  durationMs: number;
+  exitCode: number | null;
+}
+
+export interface TestToolResult {
+  ok: boolean;
+  status: string;
+  slug: string | null;
+  language: string;
+  runtime: string;
+  exitCode: number | null;
+  durationMs: number;
+  phases: {
+    provision?: TestToolPhase;
+    install?: TestToolPhase;
+    run?: TestToolPhase;
+  };
+  stdout: string;
+  stderr: string;
+  stdoutTruncated: boolean;
+  stderrTruncated: boolean;
+  sessionId: string | null;
+  sessionExpiresAt: number | null;
+  sessionReused: boolean;
+  sessionFiles: string[];
+  error?: { code: string; message: string };
+}
+
 export interface SuccessEnvelope<T> {
-  command: "search" | "context" | "docs" | "upgrade";
+  command: "search" | "context" | "docs" | "upgrade" | "test";
   query: string;
   data: T;
   meta: { count: number; total: number | null };
