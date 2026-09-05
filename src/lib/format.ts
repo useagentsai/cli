@@ -226,6 +226,51 @@ function truncateCode(code: string): string {
   return code.length > 1_000 ? `${code.slice(0, 999)}…` : code;
 }
 
+function printPhase(label: string, phase: TestToolPhase | undefined): string | null {
+  if (!phase) return null;
+  const code = phase.exitCode == null ? "" : ` exit=${phase.exitCode}`;
+  return `  ${label}: ${phase.ok ? "ok" : "failed"} (${phase.durationMs}ms${code})`;
+}
+
+export function printTestHuman(result: TestToolResult, color: boolean): string {
+  const lines = [
+    "",
+    `  ${cyan("test_tool", color)}  ${result.ok ? "ok" : "failed"}`,
+    `  Status: ${result.status}`,
+    `  Runtime: ${result.runtime}`,
+    `  Language: ${result.language}`,
+    ...(result.slug ? [`  Slug: ${result.slug}`] : []),
+    `  Duration: ${result.durationMs}ms`,
+    `  Exit: ${result.exitCode ?? "—"}`,
+  ];
+  const phases = [
+    printPhase("Provision", result.phases.provision),
+    printPhase("Install", result.phases.install),
+    printPhase("Run", result.phases.run),
+  ].filter((line): line is string => Boolean(line));
+  if (phases.length) {
+    lines.push("", `  ${bold("Phases", color)}`, "  ──────", ...phases);
+  }
+  if (result.error) {
+    lines.push("", `  ${red(result.error.message, color)}`, `  Code: ${result.error.code}`);
+  }
+  if (result.stdout) {
+    lines.push("", `  ${bold("stdout", color)}`, "  ──────");
+    for (const line of result.stdout.trimEnd().split("\n")) {
+      lines.push(`  ${line}`);
+    }
+    if (result.stdoutTruncated) lines.push(`  ${dim("(truncated)", color)}`);
+  }
+  if (result.stderr) {
+    lines.push("", `  ${bold("stderr", color)}`, "  ──────");
+    for (const line of result.stderr.trimEnd().split("\n")) {
+      lines.push(`  ${line}`);
+    }
+    if (result.stderrTruncated) lines.push(`  ${dim("(truncated)", color)}`);
+  }
+  return `${lines.join("\n")}\n`;
+}
+
 export function printHumanError(message: string, color: boolean): string {
   return `${red("✖", color)} ${message}\n`;
 }
