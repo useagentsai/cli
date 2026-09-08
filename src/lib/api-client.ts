@@ -1,4 +1,5 @@
 import { ApiError } from "./errors";
+import { CLI_VERSION } from "../version";
 import type { SearchResultItem, TestToolInput, TestToolResult, ToolContext, ToolDocsSearch } from "../types";
 
 const TIMEOUT_MS = 15_000;
@@ -55,7 +56,7 @@ export class ApiClient {
         method: init.method ?? "GET",
         headers: {
           Accept: "application/json",
-          "User-Agent": "@useagents/cli",
+          "User-Agent": `@useagents/cli/${CLI_VERSION}`,
           ...(init.body !== undefined ? { "Content-Type": "application/json" } : {}),
           ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {}),
         },
